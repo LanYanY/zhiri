@@ -7,11 +7,14 @@ android {
         applicationId "com.zhiri.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // 动态版本号：从环境变量或 git tag 获取
-        def version = System.getenv("VERSION_NAME") ?: "1.0.0"
-        def parts = version.tokenize(".")
-        def code = parts.size() >= 3 ? (parts[0].toInteger() * 10000 + parts[1].toInteger() * 100 + parts[2].toInteger()) : 1
-        versionCode code
+        // 动态版本号：从环境变量 VERSION_NAME (如 v1.2.0) 提取
+        def rawVersion = System.getenv("VERSION_NAME") ?: "1.0.0"
+        def version = rawVersion.replaceFirst(/^v/, "")
+        def parts = version.split("\\.")
+        def major = parts.length > 0 ? parts[0].toInteger() : 1
+        def minor = parts.length > 1 ? parts[1].toInteger() : 0
+        def patch = parts.length > 2 ? parts[2].toInteger() : 0
+        versionCode major * 10000 + minor * 100 + patch
         versionName version
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
