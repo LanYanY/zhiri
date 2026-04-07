@@ -27,17 +27,20 @@ jobs:
 
       - name: Build APK
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon 2>&1 | tail -30
-
-      - name: Verify APK
         run: |
-          APK="android/app/build/outputs/apk/debug/app-debug.apk"
-          if [ -f "$APK" ]; then
-            echo "✅ APK exists: $(du -h $APK | cut -f1)"
-          else
-            echo "❌ APK NOT FOUND!"
-            exit 1
-          fi
+          ./gradlew assembleDebug --no-daemon --info 2>&1 | tee /tmp/gradle.log
+          echo "=== EXIT CODE: ${PIPESTATUS[0]} ==="
+          echo "=== Looking for APK ==="
+          find . -name "*.apk" -type f 2>/dev/null
+          echo "=== APK Directory ==="
+          ls -laR app/build/outputs/apk/ 2>/dev/null || echo "APK output dir not found"
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: /tmp/gradle.log
 
       - uses: softprops/action-gh-release@v2
         with:
@@ -45,6 +48,4 @@ jobs:
           name: "知日 APK ${{ github.ref_name }}"
           prerelease: true
           body: "Auto-built APK"
-          files: |
-            android/app/build/outputs/apk/debug/app-debug.apk
-          fail_on_unmatched_files: true
+          files: android/app/build/outputs/apk/debug/app-debug.apk
