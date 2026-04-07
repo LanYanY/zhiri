@@ -29,13 +29,108 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon 2>&1 | tail -10
 
-      - name: Upload APK to separate branch
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: android/app/build/outputs/apk/debug
-          publish_branch: apk-branch
-          keep_files: false
-          destination_dir: release
-          user_name: "github-actions"
-          user_email: "actions@github.com"
+      - name: Upload APK via GitHub API
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          if [ ! -f "$APK" ]; then
+            echo "APK not found!"
+            exit 1
+          fi
+          
+          # Base64 encode the APK
+          B64=$(base64 -w0 "$APK")
+          COMMIT_SHA=$(git rev-parse HEAD)
+          
+          API="https://api.github.com/repos/$REPO"
+          AUTH="Authorization: Bearer $GITHUB_TOKEN"
+          ACCEPT="Accept: application/vnd.github+json"
+          
+          # Check if apk-branch exists, get its SHA
+          BRANCH_SHA=$(curl -s -H "$AUTH" -H "$ACCEPT" "$API/git/ref/heads/apk-branch" | node -e "
+            const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+            if(d.object) console.log(d.object.sha); else console.log('');
+          " 2>/dev/null)
+          
+          if [ -z "$BRANCH_SHA" ]; then
+            echo "Creating new apk-branch..."
+            # Create empty tree
+            TREE_SHA=$(curl -s -X POST -H "$AUTH" -H "$ACCEPT" "$API/git/trees" \
+              -d '{"tree":[]}' | node -e "
+              const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+              console.log(d.sha||'');
+            " 2>/dev/null)
+            
+            # Create commit with empty tree
+            COMMIT_SHA2=$(curl -s -X POST -H "$AUTH" -H "$ACCEPT" "$API/git/commits" \
+              -d '{
+                "message": "Initialize APK branch",
+                "tree": "'"$TREE_SHA"'",
+                "parents": []
+              }' | node -e "
+              const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+              console.log(d.sha||'');
+            " 2>/dev/null)
+            
+            # Create branch
+            curl -s -X POST -H "$AUTH" -H "$ACCEPT" "$API/git/refs" \
+              -d '{"ref":"refs/heads/apk-branch","sha":"'"$COMMIT_SHA2"'"}' > /dev/null
+            
+            BRANCH_SHA=$COMMIT_SHA2
+            echo "Branch created: $BRANCH_SHA"
+          else
+            echo "Using existing apk-branch: $BRANCH_SHA"
+          fi
+          
+          # Create blob
+          BLOB_SHA=$(curl -s -X POST -H "$AUTH" -H "$ACCEPT" "$API/git/blobs" \
+            -d '{
+              "content": "'"$B64"'",
+              "encoding": "base64"
+            }' | node -e "
+            const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+            if(d.sha) console.log(d.sha);
+            else { console.error(JSON.stringify(d)); process.exit(1); }
+          " 2>/dev/null)
+          
+          echo "Blob SHA: $BLOB_SHA"
+          
+          # Create tree with the APK file
+          TREE_SHA=$(curl -s -X POST -H "$AUTH" -H "$ACCEPT" "$API/git/trees" \
+            -d '{
+              "base_tree": "'"$BRANCH_SHA"'",
+              "tree": [{
+                "path": "zhiri-debug.apk",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "'"$BLOB_SHA"'"
+              }]
+            }' | node -e "
+            const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+            if(d.sha) console.log(d.sha);
+            else { console.error(JSON.stringify(d)); process.exit(1); }
+          " 2>/dev/null)
+          
+          echo "Tree SHA: $TREE_SHA"
+          
+          # Create commit
+          COMMIT_SHA=$(curl -s -X POST -H "$AUTH" -H "$ACCEPT" "$API/git/commits" \
+            -d '{
+              "message": "Update APK from '"$(git rev-parse --short HEAD)"'",
+              "tree": "'"$TREE_SHA"'",
+              "parents": ["'"$BRANCH_SHA"'"]
+            }' | node -e "
+            const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+            if(d.sha) console.log(d.sha);
+            else { console.error(JSON.stringify(d)); process.exit(1); }
+          " 2>/dev/null)
+          
+          echo "Commit SHA: $COMMIT_SHA"
+          
+          # Update branch
+          curl -s -X PATCH -H "$AUTH" -H "$ACCEPT" "$API/git/refs/heads/apk-branch" \
+            -d '{"sha":"'"$COMMIT_SHA"'","force":true}'
+          
+          echo "✅ APK uploaded to apk-branch"
