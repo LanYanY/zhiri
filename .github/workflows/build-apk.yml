@@ -29,24 +29,13 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon 2>&1 | tail -10
 
-      - name: Commit APK to apk branch
-        run: |
-          APK="android/app/build/outputs/apk/debug/app-debug.apk"
-          if [ ! -f "$APK" ]; then
-            echo "APK not found!"
-            exit 1
-          fi
-          
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-          
-          # Create or switch to apk branch
-          git fetch origin apk-branch 2>/dev/null && git checkout apk-branch || git checkout --orphan apk-branch
-          git rm -rf . 2>/dev/null || true
-          mkdir -p release
-          cp "$APK" release/zhiri-debug.apk
-          git add -f release/zhiri-debug.apk
-          git commit -m "Auto-built APK from $(git rev-parse origin/main 2>/dev/null | cut -c1-7)"
-          git push -f origin apk-branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload APK to separate branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: android/app/build/outputs/apk/debug
+          publish_branch: apk-branch
+          keep_files: false
+          destination_dir: release
+          user_name: "github-actions"
+          user_email: "actions@github.com"
