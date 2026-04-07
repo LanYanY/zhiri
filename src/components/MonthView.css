@@ -1,24 +1,29 @@
 .month-view {
   background: rgba(255, 255, 255, 0.85);
   border-radius: 16px;
-  padding: 20px;
-  margin: 16px;
+  padding: 16px;
+  margin: 8px;
   box-shadow: 0 4px 20px rgba(139, 69, 19, 0.1);
   backdrop-filter: blur(10px);
+  overflow-x: hidden;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .month-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .month-title {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #3a2e28;
   font-family: "STKaiti", "KaiTi", serif;
+  text-align: center;
+  flex: 1;
 }
 
 .month-nav-btn {
@@ -27,9 +32,10 @@
   font-size: 1.5rem;
   color: #8B4513;
   cursor: pointer;
-  padding: 8px 16px;
+  padding: 8px 12px;
   border-radius: 8px;
   transition: background 0.2s;
+  flex-shrink: 0;
 }
 
 .month-nav-btn:hover {
@@ -39,16 +45,18 @@
 .weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 4px;
+  margin-bottom: 8px;
+  width: 100%;
 }
 
 .weekday {
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #666;
-  padding: 8px;
+  padding: 6px 0;
   font-weight: 500;
+  min-width: 0;
 }
 
 .weekday.weekend {
@@ -58,14 +66,15 @@
 .days-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  gap: 4px;
+  width: 100%;
 }
 
 .day-cell {
   aspect-ratio: 1;
   background: rgba(245, 240, 232, 0.5);
-  border-radius: 12px;
-  padding: 6px;
+  border-radius: 10px;
+  padding: 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -73,14 +82,15 @@
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
-  min-height: 70px;
   border: 2px solid transparent;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .day-cell:hover {
   background: rgba(139, 69, 19, 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(139, 69, 19, 0.15);
 }
 
 .day-cell.today {
@@ -125,48 +135,52 @@
 }
 
 .solar-day {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
+  line-height: 1.2;
 }
 
 .lunar-day {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: #8B7355;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  line-height: 1.2;
 }
 
 /* 事件指示器 */
 .event-indicators {
   display: flex;
-  gap: 2px;
-  margin-top: 2px;
+  gap: 1px;
+  margin-top: 1px;
 }
 
 .memorial-dot, .holiday-dot, .annotation-dot {
-  font-size: 0.6rem;
+  font-size: 0.55rem;
+  line-height: 1;
 }
 
 /* 事件标题 */
 .event-titles {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  margin-top: 2px;
+  gap: 0px;
+  margin-top: 1px;
   width: 100%;
   overflow: hidden;
 }
 
 .event-title-text {
-  font-size: 0.55rem;
+  font-size: 0.5rem;
   color: #c45c48;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 500;
+  line-height: 1.2;
 }
 
 .day-cell.has-memorial .event-title-text {
@@ -175,31 +189,41 @@
 }
 
 .event-more {
-  font-size: 0.5rem;
+  font-size: 0.45rem;
   color: #999;
   text-align: center;
+  line-height: 1.2;
 }
 
 @media (max-width: 480px) {
   .month-view {
-    padding: 12px;
-    margin: 8px;
+    padding: 10px;
+    margin: 4px;
   }
 
-  .day-cell {
-    min-height: 60px;
-    padding: 4px;
+  .month-title {
+    font-size: 1.2rem;
+  }
+
+  .month-nav-btn {
+    padding: 6px 10px;
+    font-size: 1.3rem;
+  }
+
+  .weekday {
+    font-size: 0.75rem;
+    padding: 4px 0;
   }
 
   .solar-day {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 
   .lunar-day {
-    font-size: 0.6rem;
+    font-size: 0.55rem;
   }
 
   .event-title-text {
-    font-size: 0.5rem;
+    font-size: 0.45rem;
   }
 }
