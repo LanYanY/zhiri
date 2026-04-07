@@ -24,70 +24,16 @@ jobs:
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Build Debug APK
+        id: build
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon 2>&1 | tail -10
 
-      - name: Enable GitHub Pages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Try to create a pages site
-          curl -s -X POST \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            -H "Content-Type: application/json" \
-            "https://api.github.com/repos/${{ github.repository }}/pages" \
-            -d '{"build_type":"legacy","source":{"branch":"gh-pages","path":"/"}}' || true
-          sleep 2
-
-      - name: Upload APK via Contents API
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
+      - name: Debug Info
         run: |
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
-          
-          # Check if APK exists and get its size
-          if [ ! -f "$APK" ]; then
-            echo "APK not found!"
-            exit 1
-          fi
-          
-          SIZE=$(stat -c%s "$APK")
-          SIZE_MB=$((SIZE / 1024 / 1024))
-          echo "APK size: ${SIZE_MB}MB"
-          
-          if [ $SIZE_MB -gt 100 ]; then
-            echo "APK too large for Contents API (>100MB)"
-            exit 1
-          fi
-          
-          # Base64 encode
-          B64=$(base64 -w0 "$APK")
-          B64_LEN=${#B64}
-          echo "Base64 length: $B64_LEN bytes"
-          
-          # Check if file exists on gh-pages
-          EXIST_SHA=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$REPO/contents/app-debug.apk?ref=gh-pages" \
-            | node -e "const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')); console.log(d.sha||'');" 2>/dev/null)
-          
-          echo "Existing SHA: $EXIST_SHA"
-          
-          # Upload via Contents API
-          DATA='{"message":"Update APK","content":"'"$B64"'","branch":"gh-pages"}'
-          if [ -n "$EXIST_SHA" ]; then
-            DATA='{"message":"Update APK","content":"'"$B64"'","branch":"gh-pages","sha":"'"$EXIST_SHA"'"}'
-          fi
-          
-          RESP=$(curl -s -X PUT \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            -H "Content-Type: application/json" \
-            "https://api.github.com/repos/$REPO/contents/app-debug.apk" \
-            -d "$DATA")
-          
-          echo "Response: $(echo "$RESP" | node -e "const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')); console.log(d.content?.sha || JSON.stringify(d).substring(0,200));" 2>/dev/null)"
+          echo "APK exists: $([ -f "$APK" ] && echo yes || echo no)"
+          [ -f "$APK" ] && echo "APK size: $(du -h "$APK" | cut -f1)"
+          echo "GitHub ref: ${{ github.ref }}"
+          echo "Repo: ${{ github.repository }}"
