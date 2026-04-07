@@ -8,7 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      actions: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -17,27 +16,23 @@ jobs:
           java-version: "17"
       - uses: android-actions/setup-android@v3
       - run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
-      - name: Build APK
-        run: |
+      - run: |
           cd android
           chmod +x gradlew
-          ./gradlew clean assembleDebug --info 2>&1 | tee /tmp/gradle_output.log
-          echo "::notice::Gradle exit code: $?"
-          if [ ${PIPESTATUS[0]} -ne 0 ]; then
-            echo "::error::Gradle build failed"
-            echo "=== LAST 200 LINES OF OUTPUT ==="
-            tail -200 /tmp/gradle_output.log
-            exit 1
-          fi
-      - name: Upload build log if failed
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: gradle-log
-          path: /tmp/gradle_output.log
-      - name: Upload APK
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          ./gradlew assembleDebug --no-daemon
+      - name: Create Release with APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          
+          # Delete existing release
+          gh release delete apk-latest --yes --cleanup-tag 2>/dev/null || true
+          sleep 2
+          
+          # Create release and upload APK
+          gh release create apk-latest "$APK" \
+            --title "知日 APK - $SHORT_SHA" \
+            --notes "Auto-built APK from commit $SHORT_SHA" \
+            --prerelease
