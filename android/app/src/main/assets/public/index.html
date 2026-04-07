@@ -11,6 +11,9 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="application-name" content="知日">
   <meta name="msapplication-TileColor" content="#8B4513">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icon-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
@@ -27,9 +30,9 @@
     }
     #root { min-height: 100vh; }
   </style>
-  <script type="module" crossorigin src="/assets/index-Zjf7mGSL.js"></script>
+  <script type="module" crossorigin src="/assets/index-C4T9KYIA.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/vendor-CRB3T2We.js">
-  <link rel="stylesheet" crossorigin href="/assets/index-B0A6WTRG.css">
+  <link rel="stylesheet" crossorigin href="/assets/index-BYc5kSBk.css">
 </head>
 <body>
   <div id="root"></div>
@@ -38,24 +41,13 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js', { scope: '/' })
-          .then(reg => console.log('SW registered'))
+          .then(reg => {
+            console.log('SW registered');
+            // 强制更新缓存
+            reg.update();
+          })
           .catch(err => console.error('SW registration failed'));
       });
-    }
-
-    // iOS 安装提示
-    function isIOSStandalone() {
-      return window.navigator.standalone === true || 
-             window.matchMedia('(display-mode: standalone)').matches;
-    }
-
-    function isAndroidStandalone() {
-      return window.matchMedia('(display-mode: standalone)').matches;
-    }
-
-    // 检测是否已安装
-    if (isIOSStandalone() || isAndroidStandalone()) {
-      document.body.classList.add('pwa-installed');
     }
   </script>
 </body>
