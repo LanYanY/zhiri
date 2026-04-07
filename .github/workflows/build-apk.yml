@@ -23,19 +23,66 @@ jobs:
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon 2>&1 | tail -20
-      - name: Release APK
+      - name: Create Release via API
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
           SHORT_SHA=$(git rev-parse --short HEAD)
-          TAG="apk-$(date +%Y%m%d%H%M%S)"
-          
-          gh release create "$TAG" "$APK" \
-            --title "知日 APK - $(date '+%Y-%m-%d %H:%M')" \
-            --notes "Commit: $SHORT_SHA" \
-            --target main \
-            --prerelease
-          
-          echo "✅ Release tag: $TAG"
-          echo "📥 Download: https://github.com/${{ github.repository }}/releases/tag/$TAG"
+          TAG="apk-$(date +%s)"
+          B64=$(base64 -w0 "$APK")
+
+          # Create blob
+          BLOB_SHA=$(curl -s -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Content-Type: application/json" \
+            https://api.github.com/repos/${{ github.repository }}/git/blobs \
+            -d "{\"content\":\"$B64\",\"encoding\":\"base64\"}" | node -e "
+            const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+            if(d.sha){console.log(d.sha)}else{console.error(JSON.stringify(d));process.exit(1)}
+          ")
+
+          # Get latest commit SHA as parent
+          PARENT_SHA=$(git rev-parse HEAD)
+
+          # Create tree
+          TREE_SHA=$(curl -s -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Content-Type: application/json" \
+            https://api.github.com/repos/${{ github.repository }}/git/trees \
+            -d "{\"base_tree\":\"$PARENT_SHA\",\"tree\":[{\"path\":\"zhiri-debug.apk\",\"mode\":\"100644\",\"type\":\"blob\",\"sha\":\"$BLOB_SHA\"}]}" | node -e "
+            const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+            if(d.sha){console.log(d.sha)}else{console.error(JSON.stringify(d));process.exit(1)}
+          ")
+
+          # Create commit
+          COMMIT_SHA=$(curl -s -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Content-Type: application/json" \
+            https://api.github.com/repos/${{ github.repository }}/git/commits \
+            -d "{\"message\":\"APK build $SHORT_SHA\",\"tree\":\"$TREE_SHA\",\"parents\":[\"$PARENT_SHA\"]}" | node -e "
+            const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+            if(d.sha){console.log(d.sha)}else{console.error(JSON.stringify(d));process.exit(1)}
+          ")
+
+          # Create tag
+          curl -s -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Content-Type: application/json" \
+            https://api.github.com/repos/${{ github.repository }}/git/refs \
+            -d "{\"ref\":\"refs/tags/$TAG\",\"sha\":\"$COMMIT_SHA\"}" > /dev/null
+
+          # Create release
+          curl -s -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Content-Type: application/json" \
+            https://api.github.com/repos/${{ github.repository }}/releases \
+            -d "{\"tag_name\":\"$TAG\",\"name\":\"知日 APK $(date +%Y-%m-%d)\",\"body\":\"Commit: $SHORT_SHA\",\"prerelease\":true}" > /dev/null
+
+          echo "✅ Tag: $TAG"
+          echo "📥 https://github.com/${{ github.repository }}/releases/tag/$TAG"
