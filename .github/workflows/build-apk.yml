@@ -34,23 +34,51 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon 2>&1 | tail -20
 
-      - name: Create Release
+      - name: Create Release via API
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
         run: |
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
           SHORT_SHA=$(git rev-parse --short HEAD)
-          TAG="v$(date +%Y%m%d)-$SHORT_SHA"
           
-          # Clean up any existing release
-          gh release delete apk-latest --yes 2>/dev/null || true
-          git push --delete origin apk-latest 2>/dev/null || true
-          git tag -d apk-latest 2>/dev/null || true
-          sleep 3
+          API="https://api.github.com/repos/$REPO"
+          AUTH="-H Authorization: Bearer $GITHUB_TOKEN -H Accept: application/vnd.github+json"
           
-          # Create fresh release
-          gh release create apk-latest "$APK" \
-            --title "知日 APK (Latest)" \
-            --notes "Auto-built from commit $SHORT_SHA" \
-            --target main \
-            --prerelease
+          # Delete old release and tag
+          curl -s $AUTH -X DELETE "$API/releases/tags/apk-latest" 2>/dev/null || true
+          curl -s $AUTH -X DELETE "$API/git/refs/tags/apk-latest" 2>/dev/null || true
+          sleep 2
+          
+          # Create release
+          RESP=$(curl -s $AUTH -X POST "$API/releases" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"tag_name\": \"apk-latest\",
+              \"target_commitish\": \"$SHA\",
+              \"name\": \"知日 APK (Latest)\",
+              \"body\": \"Auto-built from $SHORT_SHA\",
+              \"draft\": false,
+              \"prerelease\": true
+            }")
+          
+          UPLOAD_URL=$(echo "$RESP" | node -e "
+            const d = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+            if (d.upload_url) {
+              console.log(d.upload_url.replace(/\\{.*$/, ''));
+            } else {
+              console.error('Failed:', JSON.stringify(d).substring(0, 300));
+              process.exit(1);
+            }
+          ")
+          
+          echo "Upload URL: $UPLOAD_URL"
+          
+          # Upload APK
+          curl -s $AUTH \
+            -H "Content-Type: application/vnd.android.package-archive" \
+            --data-binary @"$APK" \
+            "$UPLOAD_URL?name=zhiri-debug.apk&label=知日 Debug APK"
+          
+          echo "✅ Release created"
