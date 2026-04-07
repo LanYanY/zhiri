@@ -1,0 +1,20 @@
+# Android build outputs
+android/.gradle/
+android/*/build/
+android/build/
+
+# Node.js
+node_modules/
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Termux
+*.pem

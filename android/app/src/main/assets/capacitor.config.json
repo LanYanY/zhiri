@@ -1,0 +1,14 @@
+{
+	"appId": "com.zhiri.app",
+	"appName": "知日",
+	"webDir": "dist",
+	"android": {},
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 2000,
+			"backgroundColor": "#8B4513",
+			"androidSplashResourceName": "splash",
+			"androidScaleType": "CENTER_CROP"
+		}
+	}
+}
