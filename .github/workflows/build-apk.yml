@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,19 +33,52 @@ jobs:
           ./gradlew assembleDebug --no-daemon 2>&1 | tail -20
           find . -name "*.apk" -type f
 
-      - name: Release
+      - name: Debug Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ github.ref_name }}"
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
           
-          # Check if release already exists and delete it
-          gh release view "$TAG" 2>/dev/null && gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
-          sleep 3
+          echo "=== Debug Info ==="
+          echo "Tag: $TAG"
+          echo "APK exists: $([ -f $APK ] && echo YES || echo NO)"
+          [ -f "$APK" ] && echo "APK size: $(du -h $APK | cut -f1)"
           
-          # Create release and upload APK
-          gh release create "$TAG" "$APK" \
-            --title "知日 APK $TAG" \
-            --notes "Auto-built APK" \
-            --prerelease
+          # Clean up existing release
+          gh release delete "$TAG" --yes 2>&1 || true
+          git push --delete origin "$TAG" 2>&1 || true
+          git tag -d "$TAG" 2>&1 || true
+          sleep 2
+          
+          # Delete release via API if still exists
+          curl -s -X DELETE \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG" 2>&1
+          sleep 1
+          
+          # Recreate tag
+          COMMIT_SHA=$(git rev-parse HEAD)
+          git tag -f "$TAG" "$COMMIT_SHA"
+          git push origin "$TAG" --force 2>&1
+          sleep 2
+          
+          # Create release via API
+          curl -s -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Content-Type: application/json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases" \
+            -d "{
+              \"tag_name\": \"$TAG\",
+              \"name\": \"知日 APK $TAG\",
+              \"prerelease\": true
+            }" 2>&1
+          
+          echo "=== Release created, uploading APK ==="
+          
+          # Upload APK
+          gh release upload "$TAG" "$APK" --clobber 2>&1
+          
+          echo "=== Done ==="
