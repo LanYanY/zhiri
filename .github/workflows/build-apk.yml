@@ -2,7 +2,8 @@ name: Build APK
 
 on:
   push:
-    branches: [ main ]
+    tags:
+      - "v*"
   workflow_dispatch:
 
 jobs:
@@ -12,32 +13,20 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-
       - uses: android-actions/setup-android@v3
-
-      - uses: gradle/actions/setup-gradle@v3
-
-      - run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
-
-      - name: Build APK
-        run: |
-          chmod +x android/gradlew
+      - run: |
           cd android
-          ./gradlew :app:assembleDebug --no-daemon
-          echo "=== APK Directory ==="
-          ls -la app/build/outputs/apk/debug/ || echo "Not found at app/build/outputs/apk/debug/"
-          find . -name "*.apk" 2>/dev/null
-
-      - name: Release
-        uses: softprops/action-gh-release@v2
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon 2>&1 | tail -20
+      - uses: softprops/action-gh-release@v2
         with:
-          tag_name: apk-${{ github.run_id }}
-          name: "知日 APK #${{ github.run_number }}"
+          tag_name: ${{ github.ref_name || 'dev' }}
+          name: "知日 APK ${{ github.ref_name || 'Dev Build' }}"
           prerelease: true
           body: "Auto-built APK"
           files: android/app/build/outputs/apk/debug/app-debug.apk
+          generate_release_notes: true
