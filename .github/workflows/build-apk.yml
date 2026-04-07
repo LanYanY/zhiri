@@ -17,13 +17,27 @@ jobs:
           java-version: "17"
       - uses: android-actions/setup-android@v3
       - run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
-      - run: |
+      - name: Build APK
+        run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
-      - uses: actions/upload-artifact@v4
+          ./gradlew clean assembleDebug --info 2>&1 | tee /tmp/gradle_output.log
+          echo "::notice::Gradle exit code: $?"
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            echo "::error::Gradle build failed"
+            echo "=== LAST 200 LINES OF OUTPUT ==="
+            tail -200 /tmp/gradle_output.log
+            exit 1
+          fi
+      - name: Upload build log if failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-log
+          path: /tmp/gradle_output.log
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 5
-          if-no-files-found: error
