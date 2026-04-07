@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getDayInfo } from '../utils/calendar';
-import { getDayAnnotations, getDayEvents, addEvent, saveAnnotation, deleteAnnotation, deleteEvent, getAIDailySuggestion, getLLMConfig } from '../utils/storage';
+import { getDayAnnotations, getDayEvents, addEvent, saveAnnotation, deleteAnnotation, deleteEvent, getAIDailySuggestion, getLLMConfig, getRichLocalSuggestion } from '../utils/storage';
 import './DayView.css';
 
 function DayView({ dateStr }) {
@@ -38,7 +38,8 @@ function DayView({ dateStr }) {
         })
         .finally(() => setLoadingAI(false));
     } else {
-      setAiSuggestion(info.suggestion.text);
+      // 未配置 LLM 时显示丰富的本地建议
+      setAiSuggestion(getRichLocalSuggestion(info));
     }
   }, [dateStr, info, llmConfig.enabled]);
 

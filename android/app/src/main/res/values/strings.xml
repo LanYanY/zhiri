@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">zhiri</string>
-    <string name="title_activity_main">zhiri</string>
+    <string name="app_name">知日</string>
+    <string name="title_activity_main">知日</string>
     <string name="package_name">com.zhiri.app</string>
     <string name="custom_url_scheme">com.zhiri.app</string>
 </resources>

@@ -7,8 +7,12 @@ android {
         applicationId "com.zhiri.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // 动态版本号：从环境变量或 git tag 获取
+        def version = System.getenv("VERSION_NAME") ?: "1.0.0"
+        def parts = version.tokenize(".")
+        def code = parts.size() >= 3 ? (parts[0].toInteger() * 10000 + parts[1].toInteger() * 100 + parts[2].toInteger()) : 1
+        versionCode code
+        versionName version
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'

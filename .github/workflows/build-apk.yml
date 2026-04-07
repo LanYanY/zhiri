@@ -27,7 +27,18 @@ jobs:
 
       - name: Build APK
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon
+        env:
+          VERSION_NAME: ${{ github.ref_name }}
+        run: |
+          mkdir -p "$HOME/.android"
+          # 确保使用标准 debug keystore（签名一致）
+          if [ ! -f "$HOME/.android/debug.keystore" ]; then
+            keytool -genkey -v -keystore "$HOME/.android/debug.keystore" \
+              -storepass android -alias androiddebugkey -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          ./gradlew assembleDebug --no-daemon
 
       - name: Verify APK
         run: |
