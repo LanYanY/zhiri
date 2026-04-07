@@ -28,22 +28,16 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --info 2>&1 | tee build.log
-          echo "=== BUILD LOG (last 100 lines) ==="
-          tail -100 build.log
+          ./gradlew assembleDebug --no-daemon 2>&1 | tail -20
 
-      - name: Upload Debug APK
-        uses: actions/upload-artifact@v4
-        if: always()
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: zhiri-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
-
-      - name: Upload Build Log
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: build-log
-          path: android/build.log
-          retention-days: 7
+          tag_name: apk-latest
+          name: "知日 APK (Latest)"
+          body: "自动构建的最新版知日 APK"
+          draft: false
+          prerelease: false
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
