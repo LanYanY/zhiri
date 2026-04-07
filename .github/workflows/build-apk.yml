@@ -24,16 +24,14 @@ jobs:
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Build Debug APK
-        id: build
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon 2>&1 | tail -10
 
-      - name: Debug Info
-        run: |
-          APK="android/app/build/outputs/apk/debug/app-debug.apk"
-          echo "APK exists: $([ -f "$APK" ] && echo yes || echo no)"
-          [ -f "$APK" ] && echo "APK size: $(du -h "$APK" | cut -f1)"
-          echo "GitHub ref: ${{ github.ref }}"
-          echo "Repo: ${{ github.repository }}"
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: zhiri-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
