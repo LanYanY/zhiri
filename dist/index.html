@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#8B4513">
+  <meta name="description" content="知日 - 融合公历农历、节气节日、黄历建议的现代化日历应用">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="知日">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="知日">
+  <meta name="msapplication-TileColor" content="#8B4513">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+  <title>知日</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(135deg, #f5f0e8 0%, #e8dcc8 100%);
+      min-height: 100vh;
+      color: #3a2e28;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #root { min-height: 100vh; }
+  </style>
+  <script type="module" crossorigin src="/assets/index-Zjf7mGSL.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/vendor-CRB3T2We.js">
+  <link rel="stylesheet" crossorigin href="/assets/index-B0A6WTRG.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    // 注册 Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          .then(reg => console.log('SW registered'))
+          .catch(err => console.error('SW registration failed'));
+      });
+    }
+
+    // iOS 安装提示
+    function isIOSStandalone() {
+      return window.navigator.standalone === true || 
+             window.matchMedia('(display-mode: standalone)').matches;
+    }
+
+    function isAndroidStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches;
+    }
+
+    // 检测是否已安装
+    if (isIOSStandalone() || isAndroidStandalone()) {
+      document.body.classList.add('pwa-installed');
+    }
+  </script>
+</body>
+</html>

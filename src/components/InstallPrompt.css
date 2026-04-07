@@ -1,0 +1,153 @@
+.install-prompt {
+  position: fixed;
+  bottom: 80px;
+  left: 16px;
+  right: 16px;
+  z-index: 1000;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.install-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(139, 69, 19, 0.2);
+  position: relative;
+  text-align: center;
+}
+
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #999;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.close-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.install-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.install-card h3 {
+  font-size: 1.2rem;
+  color: #3a2e28;
+  margin-bottom: 8px;
+  font-family: "STKaiti", "KaiTi", serif;
+}
+
+.install-card > p {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.install-guide {
+  background: rgba(139, 69, 19, 0.05);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.install-guide p {
+  font-size: 0.9rem;
+  color: #3a2e28;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.install-guide ol {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+
+.install-guide li {
+  font-size: 0.85rem;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+
+.install-guide strong {
+  color: #8B4513;
+}
+
+.install-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.btn-install, .btn-dismiss {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-install {
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.btn-install:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-dismiss {
+  background: #f0ebe3;
+  color: #666;
+}
+
+.btn-dismiss:hover {
+  background: #e5ddd0;
+}
+
+.install-hint {
+  font-size: 0.8rem;
+  color: #999;
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .install-prompt {
+    left: 12px;
+    right: 12px;
+    bottom: 75px;
+  }
+
+  .install-card {
+    padding: 16px;
+  }
+}

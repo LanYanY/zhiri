@@ -1,0 +1,303 @@
+.day-view {
+  padding: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.day-header {
+  text-align: center;
+  padding: 24px 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(139, 69, 19, 0.08);
+}
+
+.date-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.solar-date-large {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #3a2e28;
+  font-family: "STKaiti", "KaiTi", serif;
+}
+
+.weekday {
+  font-size: 1rem;
+  color: #8B7355;
+}
+
+.lunar-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(139, 69, 19, 0.1);
+}
+
+.lunar-large {
+  font-size: 1.3rem;
+  color: #8B4513;
+  font-family: "STKaiti", "KaiTi", serif;
+}
+
+.ganzhi {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.festival-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.festival-tag, .jieqi-tag {
+  background: linear-gradient(135deg, #c45c48 0%, #d4715b 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-family: "STKaiti", "KaiTi", serif;
+}
+
+.jieqi-tag {
+  background: linear-gradient(135deg, #5a8f5a 0%, #7ab87a 100%);
+}
+
+.huangli-card, .ai-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(139, 69, 19, 0.08);
+}
+
+.section-title {
+  font-size: 1.1rem;
+  color: #3a2e28;
+  margin-bottom: 12px;
+  font-family: "STKaiti", "KaiTi", serif;
+}
+
+.huangli-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.yi, .ji {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.yi .label, .ji .label {
+  font-weight: 700;
+  font-size: 1.1rem;
+  min-width: 30px;
+}
+
+.yi .label {
+  color: #5a8f5a;
+}
+
+.ji .label {
+  color: #c45c48;
+}
+
+.yi .items, .ji .items {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.daily-suggestion {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(139, 69, 19, 0.05);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.ai-card .ai-text {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #555;
+}
+
+.ai-card.ai-error {
+  border-left: 3px solid #ffa500;
+}
+
+.ai-hint {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 165, 0, 0.1);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #cc8800;
+}
+
+.loading {
+  color: #999;
+  font-style: italic;
+}
+
+.events-section, .annotations-section {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(139, 69, 19, 0.08);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.btn-add {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.btn-add:hover {
+  transform: scale(1.1);
+}
+
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: rgba(139, 69, 19, 0.05);
+  border-radius: 8px;
+}
+
+.add-form input, .add-form select {
+  padding: 10px 12px;
+  border: 1px solid rgba(139, 69, 19, 0.2);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.form-actions button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.form-actions button:first-child {
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+  color: white;
+}
+
+.form-actions button:last-child {
+  background: #e0e0e0;
+  color: #666;
+}
+
+.empty-tip {
+  text-align: center;
+  color: #999;
+  font-size: 0.9rem;
+  padding: 12px;
+}
+
+.events-list, .annotations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-item, .annotation-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(139, 69, 19, 0.03);
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.event-item:hover, .annotation-item:hover {
+  background: rgba(139, 69, 19, 0.08);
+}
+
+.event-icon {
+  font-size: 1.2rem;
+}
+
+.event-title, .annotation-text {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #3a2e28;
+}
+
+.btn-delete {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: #c45c48;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.event-item:hover .btn-delete, .annotation-item:hover .btn-delete {
+  opacity: 1;
+}
+
+@media (max-width: 480px) {
+  .day-view {
+    padding: 12px;
+  }
+
+  .solar-date-large {
+    font-size: 2rem;
+  }
+
+  .lunar-large {
+    font-size: 1.1rem;
+  }
+}

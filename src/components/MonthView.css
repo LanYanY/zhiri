@@ -1,0 +1,205 @@
+.month-view {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 16px;
+  padding: 20px;
+  margin: 16px;
+  box-shadow: 0 4px 20px rgba(139, 69, 19, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.month-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.month-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #3a2e28;
+  font-family: "STKaiti", "KaiTi", serif;
+}
+
+.month-nav-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #8B4513;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.month-nav-btn:hover {
+  background: rgba(139, 69, 19, 0.1);
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.weekday {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #666;
+  padding: 8px;
+  font-weight: 500;
+}
+
+.weekday.weekend {
+  color: #c45c48;
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.day-cell {
+  aspect-ratio: 1;
+  background: rgba(245, 240, 232, 0.5);
+  border-radius: 12px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  min-height: 70px;
+  border: 2px solid transparent;
+}
+
+.day-cell:hover {
+  background: rgba(139, 69, 19, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.15);
+}
+
+.day-cell.today {
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+  color: white;
+}
+
+.day-cell.today .lunar-day {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.day-cell.today .event-title-text {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.day-cell.weekend {
+  background: rgba(196, 92, 72, 0.08);
+}
+
+/* 有纪念日的日期高亮 */
+.day-cell.has-memorial {
+  border-color: #c45c48;
+  background: rgba(196, 92, 72, 0.1);
+}
+
+.day-cell.has-memorial:hover {
+  border-color: #a84a3a;
+  box-shadow: 0 4px 16px rgba(196, 92, 72, 0.25);
+}
+
+/* 有假日的日期高亮 */
+.day-cell.has-holiday {
+  border-color: #5a8f5a;
+  background: rgba(90, 143, 90, 0.1);
+}
+
+.day-cell.empty {
+  background: none;
+  cursor: default;
+  pointer-events: none;
+  border: none;
+}
+
+.solar-day {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.lunar-day {
+  font-size: 0.7rem;
+  color: #8B7355;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* 事件指示器 */
+.event-indicators {
+  display: flex;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.memorial-dot, .holiday-dot, .annotation-dot {
+  font-size: 0.6rem;
+}
+
+/* 事件标题 */
+.event-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 2px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.event-title-text {
+  font-size: 0.55rem;
+  color: #c45c48;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.day-cell.has-memorial .event-title-text {
+  color: #a84a3a;
+  font-weight: 600;
+}
+
+.event-more {
+  font-size: 0.5rem;
+  color: #999;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .month-view {
+    padding: 12px;
+    margin: 8px;
+  }
+
+  .day-cell {
+    min-height: 60px;
+    padding: 4px;
+  }
+
+  .solar-day {
+    font-size: 0.95rem;
+  }
+
+  .lunar-day {
+    font-size: 0.6rem;
+  }
+
+  .event-title-text {
+    font-size: 0.5rem;
+  }
+}
