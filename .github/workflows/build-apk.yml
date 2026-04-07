@@ -8,6 +8,8 @@ on:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -21,23 +23,33 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install SDK Platform 35
-        run: |
-          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Build Debug APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon 2>&1 | tail -20
+          ./gradlew assembleDebug --no-daemon 2>&1 | tail -15
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: apk-latest
-          name: "知日 APK (Latest)"
-          body: "自动构建的最新版知日 APK"
-          draft: false
-          prerelease: false
-          files: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Upload to Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          if [ ! -f "$APK" ]; then
+            echo "APK not found!"
+            exit 1
+          fi
+          
+          SIZE=$(du -h "$APK" | cut -f1)
+          echo "APK size: $SIZE"
+          
+          # Delete old release if exists
+          gh release delete apk-latest --cleanup-tag 2>/dev/null || true
+          git push --delete origin apk-latest 2>/dev/null || true
+          
+          # Create release with APK
+          gh release create apk-latest "$APK" \
+            --title "知日 APK (Latest)" \
+            --notes "Auto-built APK from latest commit" \
+            --prerelease
