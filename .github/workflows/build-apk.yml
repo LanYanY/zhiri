@@ -8,6 +8,9 @@ on:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
     steps:
       - uses: actions/checkout@v4
 
@@ -30,13 +33,9 @@ jobs:
           ./gradlew assembleDebug --no-daemon 2>&1 | tail -10
 
       - name: Deploy APK to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: android/app/build/outputs/apk/debug
-          publish_branch: gh-pages
-          keep_files: false
-          destination_dir: .
-          user_name: "github-actions"
-          user_email: "actions@github.com"
-          force_orphan: true
+          folder: android/app/build/outputs/apk/debug
+          branch: gh-pages
+          target-folder: .
+          single-commit: true
