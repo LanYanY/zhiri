@@ -12,6 +12,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -31,25 +33,18 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon 2>&1 | tail -15
 
-      - name: Upload to Release
+      - name: Create Release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
-          if [ ! -f "$APK" ]; then
-            echo "APK not found!"
-            exit 1
-          fi
+          SIZE=$(stat -c%s "$APK" 2>/dev/null || stat -f%z "$APK")
+          echo "APK size: $(( SIZE / 1024 / 1024 ))MB"
           
-          SIZE=$(du -h "$APK" | cut -f1)
-          echo "APK size: $SIZE"
+          gh release delete apk-latest --yes --cleanup-tag 2>/dev/null || true
+          sleep 2
           
-          # Delete old release if exists
-          gh release delete apk-latest --cleanup-tag 2>/dev/null || true
-          git push --delete origin apk-latest 2>/dev/null || true
-          
-          # Create release with APK
           gh release create apk-latest "$APK" \
             --title "知日 APK (Latest)" \
-            --notes "Auto-built APK from latest commit" \
+            --notes "Auto-built from commit $(git rev-parse --short HEAD)" \
             --prerelease
