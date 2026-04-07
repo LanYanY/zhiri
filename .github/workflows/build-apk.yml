@@ -12,73 +12,30 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Setup Gradle Cache
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: Install SDK Platform 35
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
-
-      - name: Build APK
-        run: |
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v3
+      - run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon 2>&1 | tail -20
-
-      - name: Create Release via API
+      - name: Release APK
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
           SHORT_SHA=$(git rev-parse --short HEAD)
+          TAG="apk-$(date +%Y%m%d%H%M%S)"
           
-          API="https://api.github.com/repos/$REPO"
-          AUTH="-H Authorization: Bearer $GITHUB_TOKEN -H Accept: application/vnd.github+json"
+          gh release create "$TAG" "$APK" \
+            --title "知日 APK - $(date '+%Y-%m-%d %H:%M')" \
+            --notes "Commit: $SHORT_SHA" \
+            --target main \
+            --prerelease
           
-          # Delete old release and tag
-          curl -s $AUTH -X DELETE "$API/releases/tags/apk-latest" 2>/dev/null || true
-          curl -s $AUTH -X DELETE "$API/git/refs/tags/apk-latest" 2>/dev/null || true
-          sleep 2
-          
-          # Create release
-          RESP=$(curl -s $AUTH -X POST "$API/releases" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"tag_name\": \"apk-latest\",
-              \"target_commitish\": \"$SHA\",
-              \"name\": \"知日 APK (Latest)\",
-              \"body\": \"Auto-built from $SHORT_SHA\",
-              \"draft\": false,
-              \"prerelease\": true
-            }")
-          
-          UPLOAD_URL=$(echo "$RESP" | node -e "
-            const d = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
-            if (d.upload_url) {
-              console.log(d.upload_url.replace(/\\{.*$/, ''));
-            } else {
-              console.error('Failed:', JSON.stringify(d).substring(0, 300));
-              process.exit(1);
-            }
-          ")
-          
-          echo "Upload URL: $UPLOAD_URL"
-          
-          # Upload APK
-          curl -s $AUTH \
-            -H "Content-Type: application/vnd.android.package-archive" \
-            --data-binary @"$APK" \
-            "$UPLOAD_URL?name=zhiri-debug.apk&label=知日 Debug APK"
-          
-          echo "✅ Release created"
+          echo "✅ Release tag: $TAG"
+          echo "📥 Download: https://github.com/${{ github.repository }}/releases/tag/$TAG"
