@@ -8,12 +8,8 @@ on:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -28,81 +24,14 @@ jobs:
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Build Debug APK
-        id: build
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon 2>&1 | tail -10
-          echo "apk_path=android/app/build/outputs/apk/debug/app-debug.apk" >> $GITHUB_OUTPUT
 
-      - name: Delete Old Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          REPO="${{ github.repository }}"
-          # Delete release
-          curl -s -X DELETE \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$REPO/releases/tags/apk-latest" 2>/dev/null || true
-          sleep 1
-          # Delete tag
-          curl -s -X DELETE \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$REPO/git/refs/tags/apk-latest" 2>/dev/null || true
-
-      - name: Create Release via API
-        id: create_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          REPO="${{ github.repository }}"
-          SHA="${{ github.sha }}"
-          
-          RESPONSE=$(curl -s -X POST \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            -H "Content-Type: application/json" \
-            "https://api.github.com/repos/$REPO/releases" \
-            -d '{
-              "tag_name": "apk-latest",
-              "target_commitish": "'"$SHA"'",
-              "name": "知日 APK (Latest)",
-              "body": "Auto-built from '"$(git rev-parse --short HEAD)"'",
-              "draft": false,
-              "prerelease": true,
-              "generate_release_notes": false
-            }')
-          
-          UPLOAD_URL=$(echo "$RESPONSE" | node -e "
-            const d = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
-            if (d.upload_url) {
-              console.log(d.upload_url.replace(/\{.*$/, ''));
-            } else {
-              console.error('Failed:', JSON.stringify(d).substring(0,300));
-              process.exit(1);
-            }
-          ")
-          
-          echo "upload_url=$UPLOAD_URL" >> $GITHUB_OUTPUT
-
-      - name: Upload APK to Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          UPLOAD_URL="${{ steps.create_release.outputs.upload_url }}"
-          APK="${{ steps.build.outputs.apk_path }}"
-          
-          echo "Upload URL: $UPLOAD_URL"
-          echo "APK path: $APK"
-          echo "APK exists: $([ -f "$APK" ] && echo yes || echo no)"
-          
-          RESULT=$(curl -sv -X POST \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            -H "Content-Type: application/vnd.android.package-archive" \
-            --data-binary @"$APK" \
-            "${UPLOAD_URL}?name=zhiri-debug.apk&label=知日 Debug APK" 2>&1)
-          
-          echo "Upload result: $RESULT"
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: zhiri-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
