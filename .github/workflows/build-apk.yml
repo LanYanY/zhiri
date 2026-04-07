@@ -93,11 +93,16 @@ jobs:
         run: |
           UPLOAD_URL="${{ steps.create_release.outputs.upload_url }}"
           APK="${{ steps.build.outputs.apk_path }}"
-          REPO="${{ github.repository }}"
           
-          curl -s -X POST \
+          echo "Upload URL: $UPLOAD_URL"
+          echo "APK path: $APK"
+          echo "APK exists: $([ -f "$APK" ] && echo yes || echo no)"
+          
+          RESULT=$(curl -sv -X POST \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github+json" \
             -H "Content-Type: application/vnd.android.package-archive" \
             --data-binary @"$APK" \
-            "${UPLOAD_URL}?name=zhiri-debug.apk&label=知日 Debug APK"
+            "${UPLOAD_URL}?name=zhiri-debug.apk&label=知日 Debug APK" 2>&1)
+          
+          echo "Upload result: $RESULT"
