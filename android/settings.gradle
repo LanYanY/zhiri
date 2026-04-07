@@ -17,13 +17,4 @@ include ':app'
 include ':capacitor-cordova-android-plugins'
 project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor-cordova-android-plugins/')
 
-getCapacitorPluginsDir() {
-    def capacitofFile = new File(this.getClass().protectionDomain.codeSource.location.path)
-    def capacitof = capacitofFile.parent + "/capacitor.settings.gradle"
-    if (capacitofFile.exists()) {
-        return capacitofFile.parent
-    }
-    return ""
-}
-
 apply from: 'capacitor.settings.gradle'
